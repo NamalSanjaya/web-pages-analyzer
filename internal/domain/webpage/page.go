@@ -11,3 +11,7 @@ type WebPageAnalysis struct {
 	Links        dmhtml.LinkAnalysis `json:"links"`
 	HasLoginForm bool                `json:"has_login_form"`
 }
+
+type WebPageAnalyzer interface {
+	Analyze(url string) (*WebPageAnalysis, error)
+}

@@ -10,7 +10,7 @@ type webPageAnalyzer struct {
 	httpClient clihttp.HttpClient
 }
 
-func New(httpClient clihttp.HttpClient) *webPageAnalyzer {
+func New(httpClient clihttp.HttpClient) dmpg.WebPageAnalyzer {
 	return &webPageAnalyzer{
 		httpClient: httpClient,
 	}
