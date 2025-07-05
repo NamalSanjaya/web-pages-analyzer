@@ -10,3 +10,12 @@ func ContainsAnySubstring(s string, substrArr ...string) bool {
 	}
 	return false
 }
+
+func ContainsAnyPrefix(s string, prefixArr ...string) bool {
+	for _, prefix := range prefixArr {
+		if strings.HasPrefix(s, prefix) {
+			return true
+		}
+	}
+	return false
+}
