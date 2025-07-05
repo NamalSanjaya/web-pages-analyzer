@@ -6,6 +6,8 @@ import (
 	"strings"
 
 	"golang.org/x/net/html"
+
+	utlstr "web-pages-analyzer/internal/utils/string"
 )
 
 const (
@@ -70,6 +72,99 @@ func (p *parser) CountHeadingLevels() map[string]int {
 
 	countHeadingLevels(p.node, headings)
 	return headings
+}
+
+func (p *parser) HasLoginForm(body io.Reader) bool {
+	return hasLoginForm(p.node)
+}
+
+func hasLoginForm(node *html.Node) bool {
+	if node.Type == html.ElementNode {
+		if node.Data == "form" && isLoginForm(node) {
+			return true
+		}
+
+		if node.Data == "input" && isLoginInput(node) {
+			return true
+		}
+	}
+
+	for child := node.FirstChild; child != nil; child = child.NextSibling {
+		if hasLoginForm(child) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func isLoginForm(formNode *html.Node) bool {
+	hasPasswordField := false
+	hasUsernameField := false
+
+	for _, attr := range formNode.Attr {
+		value := strings.ToLower(attr.Val)
+
+		if utlstr.ContainsAnySubstring(attr.Key, "action", "id", "class", "name") &&
+			utlstr.ContainsAnySubstring(value, "login", "signin", "auth", "session") {
+			return true
+		}
+	}
+
+	checkFormInputs(formNode, &hasPasswordField, &hasUsernameField)
+
+	return hasPasswordField && hasUsernameField
+}
+
+func checkFormInputs(node *html.Node, hasPassword *bool, hasUsername *bool) {
+	if node.Type == html.ElementNode && node.Data == "input" {
+		inputType := ""
+		inputName := ""
+		inputId := ""
+
+		for _, attr := range node.Attr {
+			switch attr.Key {
+			case "type":
+				inputType = strings.ToLower(attr.Val)
+			case "name":
+				inputName = strings.ToLower(attr.Val)
+			case "id":
+				inputId = strings.ToLower(attr.Val)
+			}
+		}
+
+		if inputType == "password" {
+			*hasPassword = true
+		}
+
+		if utlstr.ContainsAnySubstring(inputType, "email", "text") {
+			if utlstr.ContainsAnySubstring(inputName, "user", "email", "login") ||
+				utlstr.ContainsAnySubstring(inputId, "user", "email", "login") {
+				*hasUsername = true
+			}
+		}
+	}
+
+	for child := node.FirstChild; child != nil; child = child.NextSibling {
+		checkFormInputs(child, hasPassword, hasUsername)
+	}
+}
+
+func isLoginInput(inputNode *html.Node) bool {
+	for _, attr := range inputNode.Attr {
+		value := strings.ToLower(attr.Val)
+
+		if attr.Key == "type" && value == "password" {
+			return true
+		}
+
+		if utlstr.ContainsAnySubstring(attr.Key, "name", "id", "class") &&
+			utlstr.ContainsAnySubstring(value, "password", "login", "signin", "auth") {
+			return true
+		}
+	}
+
+	return false
 }
 
 func countHeadingLevels(node *html.Node, headings map[string]int) {
