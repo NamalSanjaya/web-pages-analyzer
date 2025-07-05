@@ -2,6 +2,7 @@ package html_parser
 
 import (
 	"bufio"
+	"bytes"
 	"io"
 	"net/url"
 	"strings"
@@ -23,13 +24,16 @@ const (
 
 type parser struct {
 	node    *html.Node
-	body    io.Reader
 	baseUrl *url.URL
+	body    io.Reader
 	client  clihttp.HttpClient
 }
 
 func New(body io.Reader, baseUrl string, client clihttp.HttpClient) (*parser, error) {
-	node, err := html.Parse(body)
+	var buf bytes.Buffer
+	teeBody := io.TeeReader(body, &buf)
+
+	node, err := html.Parse(teeBody)
 	if err != nil {
 		return nil, err
 	}
@@ -41,8 +45,8 @@ func New(body io.Reader, baseUrl string, client clihttp.HttpClient) (*parser, er
 
 	return &parser{
 		node:    node,
-		body:    body,
 		baseUrl: base,
+		body:    io.NopCloser(bytes.NewReader(buf.Bytes())),
 		client:  client,
 	}, nil
 }
