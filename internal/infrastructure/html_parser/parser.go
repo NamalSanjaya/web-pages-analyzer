@@ -87,11 +87,11 @@ func (p *parser) CountHeadingLevels() map[string]int {
 	return headings
 }
 
-func (p *parser) HasLoginForm(body io.Reader) bool {
+func (p *parser) HasLoginForm() bool {
 	return hasLoginForm(p.node)
 }
 
-func (p *parser) AnalyzeLinks(baseURL string) *dmhtml.LinkAnalysis {
+func (p *parser) AnalyzeLinks() *dmhtml.LinkAnalysis {
 	var internal, external, inaccessible int
 
 	links := extractLinks(p.node, p.baseUrl)
