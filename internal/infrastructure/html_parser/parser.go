@@ -3,10 +3,14 @@ package html_parser
 import (
 	"bufio"
 	"io"
+	"net/url"
 	"strings"
+	"sync"
 
 	"golang.org/x/net/html"
 
+	clihttp "web-pages-analyzer/internal/domain/clients/http"
+	dmhtml "web-pages-analyzer/internal/domain/html"
 	utlstr "web-pages-analyzer/internal/utils/string"
 )
 
@@ -18,19 +22,28 @@ const (
 )
 
 type parser struct {
-	node *html.Node
-	body io.Reader
+	node    *html.Node
+	body    io.Reader
+	baseUrl *url.URL
+	client  clihttp.HttpClient
 }
 
-func New(body io.Reader) (*parser, error) {
+func New(body io.Reader, baseUrl string, client clihttp.HttpClient) (*parser, error) {
 	node, err := html.Parse(body)
 	if err != nil {
 		return nil, err
 	}
 
+	base, err := url.Parse(baseUrl)
+	if err != nil {
+		return nil, err
+	}
+
 	return &parser{
-		node: node,
-		body: body,
+		node:    node,
+		body:    body,
+		baseUrl: base,
+		client:  client,
 	}, nil
 }
 
@@ -76,6 +89,116 @@ func (p *parser) CountHeadingLevels() map[string]int {
 
 func (p *parser) HasLoginForm(body io.Reader) bool {
 	return hasLoginForm(p.node)
+}
+
+func (p *parser) AnalyzeLinks(baseURL string) *dmhtml.LinkAnalysis {
+	var internal, external, inaccessible int
+
+	links := extractLinks(p.node, p.baseUrl)
+
+	type linkResult struct {
+		isInternal   bool
+		isAccessible bool
+	}
+
+	results := make(chan linkResult, len(links))
+	var wg sync.WaitGroup
+
+	for _, link := range links {
+		wg.Add(1)
+		go func(linkURL string, baseHost string) {
+			defer wg.Done()
+
+			parsedLink, err := url.Parse(linkURL)
+			if err != nil {
+				results <- linkResult{isInternal: false, isAccessible: false}
+				return
+			}
+
+			isInternal := isInternalLink(parsedLink, baseHost)
+
+			isAccessible := p.checkLinkAccessibility(linkURL)
+
+			results <- linkResult{isInternal: isInternal, isAccessible: isAccessible}
+		}(link, p.baseUrl.Host)
+	}
+
+	go func() {
+		wg.Wait()
+		close(results)
+	}()
+
+	// Collect data from results channel
+	for result := range results {
+		if result.isInternal {
+			internal++
+		} else {
+			external++
+		}
+
+		if !result.isAccessible {
+			inaccessible++
+		}
+	}
+
+	return &dmhtml.LinkAnalysis{
+		Internal:     internal,
+		External:     external,
+		Inaccessible: inaccessible,
+	}
+}
+
+// check if a link is accessible
+func (p *parser) checkLinkAccessibility(linkURL string) bool {
+	resp, err := p.client.Head(linkURL)
+	if err != nil {
+		return false
+	}
+	defer resp.Body.Close()
+
+	return resp.StatusCode >= 200 && resp.StatusCode < 400
+}
+
+func extractLinks(node *html.Node, base *url.URL) []string {
+	var links []string
+
+	if node.Type == html.ElementNode && node.Data == "a" {
+		for _, attr := range node.Attr {
+			if attr.Key == "href" && attr.Val != "" {
+				if resolvedURL := resolveURL(attr.Val, base); resolvedURL != "" {
+					links = append(links, resolvedURL)
+				}
+			}
+		}
+	}
+
+	for child := node.FirstChild; child != nil; child = child.NextSibling {
+		links = append(links, extractLinks(child, base)...)
+	}
+
+	return links
+}
+
+func resolveURL(href string, base *url.URL) string {
+	if href == "" || utlstr.ContainsAnyPrefix(href, "#", "javascript:", "mailto:", "tel:") {
+		return ""
+	}
+
+	parsed, err := url.Parse(href)
+	if err != nil {
+		return ""
+	}
+
+	resolved := base.ResolveReference(parsed)
+	return resolved.String()
+}
+
+func isInternalLink(linkURL *url.URL, baseHost string) bool {
+	if linkURL.Host == "" {
+		return true
+	}
+
+	return strings.EqualFold(linkURL.Host, baseHost)
 }
 
 func hasLoginForm(node *html.Node) bool {
