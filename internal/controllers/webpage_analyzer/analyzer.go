@@ -18,6 +18,10 @@ type webPageAnalyzerCtrler struct {
 	analyzer dmpg.WebPageAnalyzer
 }
 
+func New(wpa dmpg.WebPageAnalyzer) *webPageAnalyzerCtrler {
+	return &webPageAnalyzerCtrler{analyzer: wpa}
+}
+
 func (wpac *webPageAnalyzerCtrler) Analyze(w http.ResponseWriter, r *http.Request) {
 	var req analyzeRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
