@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Page Analyzer</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="top-container">
+        <header>
+            <h1>Web Page Analyzer</h1>
+            <p>Analyze your web page to get details about it</p>
+        </header>
+
+        <main>
+            <section class="analyzer-form-panel">
+
+                <form id="analyzerForm">
+
+                    <div class="analyzer-main-panel">
+                        <label for="urlInputField">Enter URL to analyze:</label>
+                        <div class="input-group">
+                            <input 
+                                type="url" 
+                                id="urlInputField" 
+                                name="url" 
+                                placeholder="https://example.com"
+                                required
+                                autocomplete="url"
+                            >
+                            <button type="submit" id="analyzeBtn">
+                                <span class="analyze-button-text">Analyze</span>
+                                <span class="analyze-loading-icon" style="display: none;">Analyzing...</span>
+                            </button>
+                        </div>
+                    </div>
+
+                </form>
+
+            </section>
+
+
+        </main>
+
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
