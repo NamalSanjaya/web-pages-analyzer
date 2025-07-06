@@ -17,6 +17,7 @@ Following details will be extracted from the HTML page.
 ## Requirements
 
 - Go 1.23 or newer version
+- Docker installed on your machine (for docker deployment)
 
 ## Dependencies
 
@@ -94,4 +95,11 @@ Analyzes a web page and returns detailed information.
    curl -X POST http://localhost:8080/api/analyze \
      -H "Content-Type: application/json" \
      -d '{"url": "https://example.com"}'
+   ```
+
+## Docker Deployment
+
+**Running web pages analyzer from docker hub**
+   ```bash
+   docker run -d -p 8080:8080 --name web-pages-analyzer-app namalsanjaya/web-pages-analyzer:v1.0.0
    ```
