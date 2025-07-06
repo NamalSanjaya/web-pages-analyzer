@@ -183,7 +183,7 @@
     margin-top: 10px;
   }
   
-  .link-stat {
+  .link-row {
     background: #fff;
     border: 1px solid #dee2e6;
     border-radius: 6px;
@@ -191,13 +191,13 @@
     padding: 15px;
   }
   
-  .link-stat-label {
+  .link-row-label {
     font-size: 0.9rem;
     color: #6c757d;
     margin-bottom: 5px;
   }
   
-  .link-stat-value {
+  .link-row-value {
     font-size: 1.5rem;
     font-weight: bold;
     color: #495057;

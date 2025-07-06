@@ -98,3 +98,107 @@ function hideError() {
     errorSection.style.display = 'none';
 }
 
+function displayResults(data) {
+    resultsContainer.innerHTML = '';
+
+    resultsContainer.appendChild(createResultCard('HTML Version', data.html_version));
+    resultsContainer.appendChild(createResultCard('Page Title', data.title || 'No title found'));
+
+    resultsContainer.appendChild(createHeadingsCard(data.headings));
+
+    resultsContainer.appendChild(createLinksCard(data.links));
+    resultsContainer.appendChild(createLoginFormCard(data.has_login_form));
+
+    showResults();
+}
+
+function createResultCard(label, value) {
+    const el = document.createElement('div');
+    el.className = 'result-card';
+    el.innerHTML = `
+        <h3>${label}</h3>
+        <div class="result-value">${value}</div>
+    `;
+    return el;
+}
+
+function createHeadingsCard(headings) {
+    const el = document.createElement('div');
+    el.className = 'result-card';
+
+    const total = Object.values(headings).reduce((sum, val) => sum + val, 0);
+
+    let breakdownHTML = '';
+    for (let i = 1; i <= 6; i++) {
+        const level = `h${i}`;
+        breakdownHTML += `
+            <div class="heading-item">
+                <div class="heading-level">${level.toUpperCase()}</div>
+                <div class="heading-count">${headings[level] || 0}</div>
+            </div>
+        `;
+    }
+
+    el.innerHTML = `
+        <h3>Headings Analysis</h3>
+        <div class="result-value">Total: ${total} headings</div>
+        <div class="headings-breakdown">
+            ${breakdownHTML}
+        </div>
+    `;
+
+    return el;
+}
+
+function createLinksCard(links) {
+    const el = document.createElement('div');
+    el.className = 'result-card';
+
+    const total = links.internal + links.external;
+
+    el.innerHTML = `
+        <h3>Links Analysis</h3>
+        <div class="result-value">Total: ${total} links</div>
+        <div class="links-grid">
+            <div class="link-row">
+                <div class="link-row-label">Internal</div>
+                <div class="link-row-value">${links.internal}</div>
+            </div>
+            <div class="link-row">
+                <div class="link-row-label">External</div>
+                <div class="link-row-value">${links.external}</div>
+            </div>
+            <div class="link-row">
+                <div class="link-row-label">Inaccessible</div>
+                <div class="link-row-value">${links.inaccessible}</div>
+            </div>
+        </div>
+    `;
+    return el;
+}
+
+function createLoginFormCard(hasLogin) {
+    const el = document.createElement('div');
+    el.className = 'result-card';
+
+    const msg = hasLogin ? '✓ Login form detected' : '✗ No login form found';
+    const className = hasLogin ? 'has-login' : 'no-login';
+
+    el.innerHTML = `
+        <h3>Login Form Detection</h3>
+        <div class="login-indicator ${className}">
+            ${msg}
+        </div>
+    `;
+    return el;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    inputEl.focus();
+});
+
+inputEl.addEventListener('input', () => {
+    if (errorSection.style.display === 'block') {
+        hideError();
+    }
+});
