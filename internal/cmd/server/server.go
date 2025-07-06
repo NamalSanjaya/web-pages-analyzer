@@ -21,7 +21,9 @@ func Start() {
 	wpaUsecase := wpa.New(httpclient)
 	wpaCtrler := wpac.New(wpaUsecase)
 
-	http.HandleFunc("/analyze", func(w http.ResponseWriter, r *http.Request) {
+	http.Handle("/", http.FileServer(http.Dir("./static/")))
+
+	http.HandleFunc("/api/analyze", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodPost {
 			wpaCtrler.Analyze(w, r)
 			return
