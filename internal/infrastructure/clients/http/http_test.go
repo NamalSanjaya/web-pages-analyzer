@@ -8,6 +8,29 @@ import (
 	clihttp "web-pages-analyzer/internal/domain/clients/http"
 )
 
+func validateResults(t *testing.T, resp *http.Response, err error, expectedError bool, statusCode int) {
+	if expectedError {
+		if err == nil {
+			t.Error("expected error, got nil")
+		}
+		if resp != nil {
+			t.Errorf("expected response nil, got %v", resp)
+		}
+	}
+
+	if !expectedError {
+		if err != nil {
+			t.Errorf("expected no error, got an error: %v", err)
+		}
+		if resp == nil {
+			t.Error("expected response non-nil, got nil")
+		}
+		if resp != nil && resp.StatusCode != statusCode {
+			t.Errorf("expected status code %d, got %d", statusCode, resp.StatusCode)
+		}
+	}
+}
+
 func Test_HttpClient_Get(t *testing.T) {
 	tests := []struct {
 		name          string
@@ -155,25 +178,34 @@ func TestHttpClient_Head_Success(t *testing.T) {
 	}
 }
 
-func validateResults(t *testing.T, resp *http.Response, err error, expectedError bool, statusCode int) {
-	if expectedError {
-		if err == nil {
-			t.Error("expected error, got nil")
-		}
-		if resp != nil {
-			t.Errorf("expected response nil, got %v", resp)
-		}
+func Test_HttpClient_Head_Error(t *testing.T) {
+	// Create client
+	cfg := &clihttp.HttpClientCfg{
+		Timeout:      1,
+		MaxRedirects: 5,
+	}
+	client := New(cfg)
+
+	// Make request to invalid URL
+	resp, err := client.Head("http://non-existing-url.com")
+
+	// Verify results
+	if err == nil {
+		t.Error("expected error but got none")
+		return
 	}
 
-	if !expectedError {
-		if err != nil {
-			t.Errorf("expected no error, got an error: %v", err)
-		}
-		if resp == nil {
-			t.Error("expected response non-nil, got nil")
-		}
-		if resp != nil && resp.StatusCode != statusCode {
-			t.Errorf("expected status code %d, got %d", statusCode, resp.StatusCode)
-		}
+	if resp != nil {
+		t.Error("expected nil response: got non-nil response")
+		defer resp.Body.Close()
+	}
+
+	httpErr, ok := clihttp.NewHttpErrorFromErr(err)
+	if !ok {
+		t.Error("expected HttpError,  got something else")
+	}
+
+	if httpErr.StatusCode != http.StatusBadGateway {
+		t.Errorf("expected status code %d, got %d", http.StatusBadGateway, httpErr.StatusCode)
 	}
 }
