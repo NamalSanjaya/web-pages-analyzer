@@ -10,39 +10,34 @@ import (
 
 func Test_HttpClient_Get(t *testing.T) {
 	tests := []struct {
-		name               string
-		statusCode         int
-		responseBody       string
-		expectedError      bool
-		expectedStatusCode int
+		name          string
+		statusCode    int
+		responseBody  string
+		expectedError bool
 	}{
 		{
-			name:               "GET request with 200",
-			statusCode:         http.StatusOK,
-			responseBody:       "<html><body>Test</body></html>",
-			expectedError:      false,
-			expectedStatusCode: http.StatusOK,
+			name:          "GET request with 200",
+			statusCode:    http.StatusOK,
+			responseBody:  "<html><body>Test</body></html>",
+			expectedError: false,
 		},
 		{
-			name:               "GET request with 204",
-			statusCode:         http.StatusNoContent,
-			responseBody:       "Created",
-			expectedError:      false,
-			expectedStatusCode: http.StatusNoContent,
+			name:          "GET request with 204",
+			statusCode:    http.StatusNoContent,
+			responseBody:  "Created",
+			expectedError: false,
 		},
 		{
-			name:               "GET request with 400",
-			statusCode:         http.StatusBadRequest,
-			responseBody:       "Bad Request",
-			expectedError:      true,
-			expectedStatusCode: http.StatusBadRequest,
+			name:          "GET request with 400",
+			statusCode:    http.StatusBadRequest,
+			responseBody:  "Bad Request",
+			expectedError: true,
 		},
 		{
-			name:               "GET request with 500",
-			statusCode:         http.StatusInternalServerError,
-			responseBody:       "Internal Server Error",
-			expectedError:      true,
-			expectedStatusCode: http.StatusInternalServerError,
+			name:          "GET request with 500",
+			statusCode:    http.StatusInternalServerError,
+			responseBody:  "Internal Server Error",
+			expectedError: true,
 		},
 	}
 
@@ -68,31 +63,10 @@ func Test_HttpClient_Get(t *testing.T) {
 			resp, err := client.Get(server.URL)
 
 			// Verify results
-			if tt.expectedError {
-				if err == nil {
-					t.Error("expected error, got nil")
-				}
-				if resp != nil {
-					t.Errorf("expected response nil, got %v", resp)
-				}
-			}
-
-			if !tt.expectedError {
-				if err != nil {
-					t.Errorf("expected no error, got an error: %v", err)
-				}
-				if resp == nil {
-					t.Error("expected response non-nil, got nil")
-				}
-				if resp != nil && resp.StatusCode != tt.statusCode {
-					t.Errorf("expected status code %d, got %d", tt.statusCode, resp.StatusCode)
-				}
-			}
-
+			validateResults(t, resp, err, tt.expectedError, tt.statusCode)
 			if resp != nil {
 				resp.Body.Close()
 			}
-
 		})
 	}
 }
@@ -126,5 +100,80 @@ func Test_HttpClient_Get_Error(t *testing.T) {
 
 	if httpErr.StatusCode != http.StatusBadGateway {
 		t.Errorf("expected status code %d, got %d", http.StatusBadGateway, httpErr.StatusCode)
+	}
+}
+
+func TestHttpClient_Head_Success(t *testing.T) {
+	tests := []struct {
+		name          string
+		statusCode    int
+		expectedError bool
+	}{
+		{
+			name:          "HEAD request with 200",
+			statusCode:    http.StatusOK,
+			expectedError: false,
+		},
+		{
+			name:          "HEAD request with 301",
+			statusCode:    http.StatusMovedPermanently,
+			expectedError: false,
+		},
+		{
+			name:          "HEAD request with 404",
+			statusCode:    http.StatusNotFound,
+			expectedError: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Create mock server
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if r.Method != http.MethodHead {
+					t.Errorf("expected HEAD request, got %s", r.Method)
+				}
+				w.WriteHeader(tt.statusCode)
+			}))
+			defer server.Close()
+
+			// Create client
+			cfg := &clihttp.HttpClientCfg{
+				Timeout:      10,
+				MaxRedirects: 5,
+			}
+			client := New(cfg)
+
+			resp, err := client.Head(server.URL)
+
+			// Verify results
+			validateResults(t, resp, err, tt.expectedError, tt.statusCode)
+			if resp != nil {
+				resp.Body.Close()
+			}
+		})
+	}
+}
+
+func validateResults(t *testing.T, resp *http.Response, err error, expectedError bool, statusCode int) {
+	if expectedError {
+		if err == nil {
+			t.Error("expected error, got nil")
+		}
+		if resp != nil {
+			t.Errorf("expected response nil, got %v", resp)
+		}
+	}
+
+	if !expectedError {
+		if err != nil {
+			t.Errorf("expected no error, got an error: %v", err)
+		}
+		if resp == nil {
+			t.Error("expected response non-nil, got nil")
+		}
+		if resp != nil && resp.StatusCode != statusCode {
+			t.Errorf("expected status code %d, got %d", statusCode, resp.StatusCode)
+		}
 	}
 }
