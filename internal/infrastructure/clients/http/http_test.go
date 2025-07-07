@@ -96,3 +96,35 @@ func Test_HttpClient_Get(t *testing.T) {
 		})
 	}
 }
+
+func Test_HttpClient_Get_Error(t *testing.T) {
+	// Create client
+	cfg := &clihttp.HttpClientCfg{
+		Timeout:      1,
+		MaxRedirects: 5,
+	}
+	client := New(cfg)
+
+	// Make request to invalid URL
+	resp, err := client.Get("http://non-existing-url.com")
+
+	// Verify results
+	if err == nil {
+		t.Error("expected error but got none")
+		return
+	}
+
+	if resp != nil {
+		t.Error("expected nil response: got non-nil response")
+		defer resp.Body.Close()
+	}
+
+	httpErr, ok := clihttp.NewHttpErrorFromErr(err)
+	if !ok {
+		t.Error("expected HttpError,  got something else")
+	}
+
+	if httpErr.StatusCode != http.StatusBadGateway {
+		t.Errorf("expected status code %d, got %d", http.StatusBadGateway, httpErr.StatusCode)
+	}
+}
