@@ -14,3 +14,8 @@ func NewHttpError(statusCode int, message string) *httpError {
 func (e *httpError) Error() string {
 	return fmt.Sprintf("HTTP call related error, status code %d: %s", e.StatusCode, e.Message)
 }
+
+func NewHttpErrorFromErr(err error) (*httpError, bool) {
+	httpErr, ok := err.(*httpError)
+	return httpErr, ok
+}
