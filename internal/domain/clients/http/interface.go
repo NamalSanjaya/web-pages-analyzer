@@ -7,6 +7,7 @@ import (
 type HttpClientCfg struct {
 	Timeout      int // Timeout in seconds
 	MaxRedirects int
+	Transport    http.RoundTripper
 }
 
 type HttpClient interface {

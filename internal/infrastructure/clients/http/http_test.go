@@ -1,12 +1,19 @@
 package http
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	clihttp "web-pages-analyzer/internal/domain/clients/http"
 )
+
+type mockTrasporter struct{}
+
+func (m *mockTrasporter) RoundTrip(req *http.Request) (*http.Response, error) {
+	return nil, fmt.Errorf("[mockTrasporter]: failed to resolve DNS")
+}
 
 func validateResults(t *testing.T, resp *http.Response, err error, expectedError bool, statusCode int) {
 	if expectedError {
@@ -99,6 +106,7 @@ func Test_HttpClient_Get_Error(t *testing.T) {
 	cfg := &clihttp.HttpClientCfg{
 		Timeout:      1,
 		MaxRedirects: 5,
+		Transport:    &mockTrasporter{}, // mock transport to simulate DNS resolution error
 	}
 	client := New(cfg)
 
@@ -183,6 +191,7 @@ func Test_HttpClient_Head_Error(t *testing.T) {
 	cfg := &clihttp.HttpClientCfg{
 		Timeout:      1,
 		MaxRedirects: 5,
+		Transport:    &mockTrasporter{}, // mock transport to simulate DNS resolution error
 	}
 	client := New(cfg)
 

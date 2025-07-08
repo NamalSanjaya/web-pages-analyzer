@@ -22,6 +22,7 @@ func New(cfg *clihttp.HttpClientCfg) clihttp.HttpClient {
 				}
 				return nil
 			},
+			Transport: cfg.Transport,
 		},
 	}
 }
