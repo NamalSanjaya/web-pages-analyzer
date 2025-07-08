@@ -130,7 +130,11 @@ This Makefile provides commands for building, testing, generating mocks, docker 
 #### `make docker-run` - Run docker image
 #### `make docker-run-prebuilt` - Run prebuilt docker image from dockerhub
 
+## System Scalability
+The web-pages-analyzer does not maintain internal state between requests. Each analysis operation is independent and self-contained. Therefore we can horizontal scaling across multiple instances without session affinity.
+
 ## Future Improvements
 - Implement multiple goroutines to parallelly get the HTML version, title & other fields since they are independent.
 - Add Redis cache for frequently analyzed web pages
 - Process large HTML documents in chunks to reduce memory usage
+
