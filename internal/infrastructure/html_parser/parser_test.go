@@ -9,7 +9,6 @@ import (
 	"go.uber.org/mock/gomock"
 
 	clihttp "web-pages-analyzer/internal/domain/clients/http"
-	"web-pages-analyzer/internal/infrastructure/clients/http/mocks"
 	httpmocks "web-pages-analyzer/internal/infrastructure/clients/http/mocks"
 )
 
@@ -163,7 +162,7 @@ func Test_CountHeadingLevels(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
-			mockClient := mocks.NewMockHttpClient(ctrl)
+			mockClient := httpmocks.NewMockHttpClient(ctrl)
 			body := strings.NewReader(tt.htmlContent)
 
 			parser, err := New(body, "https://example.com", mockClient)
@@ -257,7 +256,7 @@ func Test_AnalyzeLinks(t *testing.T) {
 		name                 string
 		htmlContent          string
 		baseURL              string
-		mockSetup            func(*mocks.MockHttpClient)
+		mockSetup            func(*httpmocks.MockHttpClient)
 		expectedInternal     int
 		expectedExternal     int
 		expectedInaccessible int
@@ -272,12 +271,13 @@ func Test_AnalyzeLinks(t *testing.T) {
 				<a href="#anchor">Anchor</a>
 			</body></html>`,
 			baseURL: "https://example.com",
-			mockSetup: func(mock *mocks.MockHttpClient) {
+			mockSetup: func(mock *httpmocks.MockHttpClient) {
 				// Internal links
 				mock.EXPECT().Head("https://example.com/internal").Return(
 					&http.Response{StatusCode: 200, Body: io.NopCloser(strings.NewReader(""))}, nil)
 				mock.EXPECT().Head("https://example.com/page").Return(
 					&http.Response{StatusCode: 200, Body: io.NopCloser(strings.NewReader(""))}, nil)
+
 				// External link
 				mock.EXPECT().Head("https://external.com").Return(
 					&http.Response{StatusCode: 404, Body: io.NopCloser(strings.NewReader(""))}, nil)
@@ -293,7 +293,7 @@ func Test_AnalyzeLinks(t *testing.T) {
 				<a href="https://external.com">External</a>
 			</body></html>`,
 			baseURL: "https://example.com",
-			mockSetup: func(mock *mocks.MockHttpClient) {
+			mockSetup: func(mock *httpmocks.MockHttpClient) {
 				mock.EXPECT().Head("https://example.com/page1").Return(
 					&http.Response{StatusCode: 200, Body: io.NopCloser(strings.NewReader(""))}, nil)
 				mock.EXPECT().Head("https://external.com").Return(
@@ -310,7 +310,7 @@ func Test_AnalyzeLinks(t *testing.T) {
 				<a href="https://unreachable.com">Unreachable</a>
 			</body></html>`,
 			baseURL: "https://example.com",
-			mockSetup: func(mock *mocks.MockHttpClient) {
+			mockSetup: func(mock *httpmocks.MockHttpClient) {
 				mock.EXPECT().Head("https://example.com/page1").Return(
 					&http.Response{StatusCode: 200, Body: io.NopCloser(strings.NewReader(""))}, nil)
 				mock.EXPECT().Head("https://unreachable.com").Return(
@@ -324,7 +324,7 @@ func Test_AnalyzeLinks(t *testing.T) {
 			name:        "no links",
 			htmlContent: `<html><body><p>No links here</p></body></html>`,
 			baseURL:     "https://example.com",
-			mockSetup: func(mock *mocks.MockHttpClient) {
+			mockSetup: func(mock *httpmocks.MockHttpClient) {
 				// No expectations
 			},
 			expectedInternal:     0,
