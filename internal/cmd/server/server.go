@@ -6,6 +6,7 @@ import (
 	wpac "web-pages-analyzer/internal/controllers/webpage_analyzer"
 	dmhttp "web-pages-analyzer/internal/domain/clients/http"
 	clihttp "web-pages-analyzer/internal/infrastructure/clients/http"
+	htmpr "web-pages-analyzer/internal/infrastructure/html_parser"
 	wpa "web-pages-analyzer/internal/usecases/webpage_analyzer"
 )
 
@@ -18,7 +19,9 @@ func Start() {
 
 	// Create singleton instances
 	httpclient := clihttp.New(cfg)
-	wpaUsecase := wpa.New(httpclient)
+	parserFactory := htmpr.NewParserFactory()
+
+	wpaUsecase := wpa.New(httpclient, parserFactory)
 	wpaCtrler := wpac.New(wpaUsecase)
 
 	http.Handle("/", http.FileServer(http.Dir("./static/")))
