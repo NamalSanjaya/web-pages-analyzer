@@ -56,11 +56,11 @@ func validateURL(urlStr string) error {
 
 	scheme := strings.ToLower(parsedURL.Scheme)
 	if scheme != "http" && scheme != "https" {
-		return fmt.Errorf("only HTTP and HTTPS schemes are supported")
+		return fmt.Errorf("only HTTP and HTTPS are supported")
 	}
 
 	if parsedURL.Host == "" {
-		return fmt.Errorf("URL must include a valid host")
+		return fmt.Errorf("host cannot be empty")
 	}
 
 	return nil
