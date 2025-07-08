@@ -1,6 +1,6 @@
 # Web Pages Analyzer Makefile
 
-BINARY_NAME=web-analyzer
+BINARY_NAME=web-pages-analyzer
 MAIN_PATH=.
 PORT=8080
 
@@ -95,14 +95,14 @@ gen-mocks:
 # Build docker image
 docker-build:
 	@echo "$(BLUE)Building Docker image...$(NC)"
-	docker build -t web-analyzer .
+	docker build -t web-pages-analyzer .
 	@echo "$(GREEN)Docker image built!$(NC)"
 
 docker-run:
 	@echo "$(BLUE)Running Docker container...$(NC)"
-	docker run -p $(PORT):$(PORT) web-analyzer
+	docker run -p $(PORT):$(PORT) web-pages-analyzer
 
 # Run docker image from pre-built image
-docker-run-prebuild:
+docker-run-prebuilt:
 	@echo "$(BLUE)Running Docker container...$(NC)"
 	docker run -d -p $(PORT):$(PORT) --name web-pages-analyzer-app --rm namalsanjaya/web-pages-analyzer:v1.0.0

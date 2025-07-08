@@ -3,6 +3,7 @@ package webpage_analyzer
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -36,6 +37,7 @@ func (wpac *webPageAnalyzerCtrler) Analyze(w http.ResponseWriter, r *http.Reques
 
 	result, err := wpac.analyzer.Analyze(req.URL)
 	if err != nil {
+		log.Println("[ERROR] Error analyzing webpage: ", err.Error())
 		http.Error(w, "Internal server error: "+err.Error(), http.StatusInternalServerError)
 		return
 	}

@@ -19,9 +19,20 @@ Following details will be extracted from the HTML page.
 - Go 1.23 or newer version
 - Docker installed on your machine (for docker deployment)
 
+## Technologies 
+
+- Go
+- HTML, CSS, JavaScript
+- Docker
+- Go Standard Library : net/http, golang.org/x/net/html, encoding/json, testing, etc
+- Mock Generation - go.uber.org/mock & mockgen (command line tool to generate mocks)
+- Http Testing - net/http/httptest
+- Git, Make 
+
 ## Dependencies
 
 - `golang.org/x/net/html` - HTML parsing
+- `go.uber.org/mock` - To generate mock for testing
 
 Execute below command to install dependencies
    ```bash
@@ -103,3 +114,23 @@ Analyzes a web page and returns detailed information.
    ```bash
    docker run -d -p 8080:8080 --name web-pages-analyzer-app namalsanjaya/web-pages-analyzer:v1.0.0
    ```
+
+## Makefile Commands
+
+This Makefile provides commands for building, testing, generating mocks, docker deployment and running the Web Pages Analyzer service.
+
+#### `make run` - Build and run the web service
+#### `make build` - Build the web service binary
+#### `make test` - Run all unit tests
+#### `make test-coverage` - Run all unit tests with coverage report
+#### `make gen-mocks` - Generate mocks for testing
+#### `make deps` - Download and install Go dependencies
+#### `make tidy` - Clean up go.mod and go.sum files
+#### `make docker-build` - Build docker image
+#### `make docker-run` - Run docker image
+#### `make docker-run-prebuilt` - Run prebuilt docker image from dockerhub
+
+## Future Improvements
+- Implement multiple goroutines to parallelly get the HTML version, title & other fields since they are independent.
+- Add Redis cache for frequently analyzed web pages
+- Process large HTML documents in chunks to reduce memory usage
