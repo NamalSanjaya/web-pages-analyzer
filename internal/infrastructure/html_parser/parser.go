@@ -29,7 +29,7 @@ type parser struct {
 	client  clihttp.HttpClient
 }
 
-func New(body io.Reader, baseUrl string, client clihttp.HttpClient) (*parser, error) {
+func New(body io.Reader, baseUrl string, client clihttp.HttpClient) (dmhtml.HtmlParser, error) {
 	var buf bytes.Buffer
 	teeBody := io.TeeReader(body, &buf)
 

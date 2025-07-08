@@ -5,3 +5,11 @@ type LinkAnalysis struct {
 	External     int `json:"external"`
 	Inaccessible int `json:"inaccessible"`
 }
+
+type HtmlParser interface {
+	GetHtmlVersion() string
+	GetTitle() string
+	CountHeadingLevels() map[string]int
+	HasLoginForm() bool
+	AnalyzeLinks() *LinkAnalysis
+}
