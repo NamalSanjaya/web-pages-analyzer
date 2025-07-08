@@ -92,7 +92,7 @@ func (p *parser) CountHeadingLevels() map[string]int {
 }
 
 func (p *parser) HasLoginForm() bool {
-	return hasLoginForm(p.node)
+	return existLoginForm(p.node)
 }
 
 func (p *parser) AnalyzeLinks() *dmhtml.LinkAnalysis {
@@ -205,19 +205,19 @@ func isInternalLink(linkURL *url.URL, baseHost string) bool {
 	return strings.EqualFold(linkURL.Host, baseHost)
 }
 
-func hasLoginForm(node *html.Node) bool {
+func existLoginForm(node *html.Node) bool {
 	if node.Type == html.ElementNode {
-		if node.Data == "form" && isLoginForm(node) {
+		if node.Data == "form" && existLoginFormTag(node) {
 			return true
 		}
 
-		if node.Data == "input" && isLoginInput(node) {
+		if node.Data == "input" && existInputTag(node) {
 			return true
 		}
 	}
 
 	for child := node.FirstChild; child != nil; child = child.NextSibling {
-		if hasLoginForm(child) {
+		if existLoginForm(child) {
 			return true
 		}
 	}
@@ -225,7 +225,7 @@ func hasLoginForm(node *html.Node) bool {
 	return false
 }
 
-func isLoginForm(formNode *html.Node) bool {
+func existLoginFormTag(formNode *html.Node) bool {
 	hasPasswordField := false
 	hasUsernameField := false
 
@@ -277,7 +277,7 @@ func checkFormInputs(node *html.Node, hasPassword *bool, hasUsername *bool) {
 	}
 }
 
-func isLoginInput(inputNode *html.Node) bool {
+func existInputTag(inputNode *html.Node) bool {
 	for _, attr := range inputNode.Attr {
 		value := strings.ToLower(attr.Val)
 
