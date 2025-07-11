@@ -124,6 +124,10 @@ This Makefile provides commands for building, testing, generating mocks, docker 
 #### `make test` - Run all unit tests
 #### `make test-coverage` - Run all unit tests with coverage report
 #### `make gen-mocks` - Generate mocks for testing
+#### `make lint` - Run golangci-lint on the entire codebase
+#### `make fmt` - Format the codebase
+#### `make fmt-check` - Check if Go code is formatted
+#### `make install-tools` - Install Go related development tools
 #### `make deps` - Download and install Go dependencies
 #### `make tidy` - Clean up go.mod and go.sum files
 #### `make docker-build` - Build docker image
