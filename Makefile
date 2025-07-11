@@ -11,6 +11,7 @@ GOCLEAN=$(GOCMD) clean
 GOTEST=$(GOCMD) test
 GOGET=$(GOCMD) get
 GOMOD=$(GOCMD) mod
+GOINSTALL=$(GOCMD) install
 
 # Colors for output
 RED=\033[0;31m
@@ -90,6 +91,41 @@ gen-mocks:
 	@echo "$(YELLOW)Generating webpage analyzer mock...$(NC)"
 	mockgen -source=internal/domain/webpage/page.go -destination=internal/usecases/webpage_analyzer/mocks/mock_analyzer.go -package=mocks
 	@echo "$(GREEN)All mocks generated!$(NC)"
+
+
+# Go Linter commands
+lint:
+	@echo "$(BLUE)Running golangci-lint...$(NC)"
+	@if ! command -v golangci-lint >/dev/null 2>&1; then \
+		echo "$(RED)golangci-lint not found. Run 'make install-tools' first.$(NC)"; \
+		exit 1; \
+	fi
+	golangci-lint run ./...
+	@echo "$(GREEN)Linting completed!$(NC)"
+
+# Format Go code
+fmt:
+	@echo "$(BLUE)Formatting Go code...$(NC)"
+	gofmt -s -w .
+	@echo "$(GREEN)Code formatting completed!$(NC)"
+
+# Check if Go code is formatted
+fmt-check:
+	@echo "$(BLUE)Checking Go code formatting...$(NC)"
+	@if [ -n "$$(gofmt -l .)" ]; then \
+		echo "$(RED)The following files are not formatted correctly:$(NC)"; \
+		gofmt -l .; \
+		exit 1; \
+	fi
+	@echo "$(GREEN)All files are properly formatted!$(NC)"
+
+# Install development tools
+install-tools:
+	@echo "$(BLUE)Installing development tools...$(NC)"
+	$(GOGET) go.uber.org/mock/mockgen@latest
+	@echo "$(YELLOW)Installing golangci-lint...$(NC)"
+	$(GOINSTALL) github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+	@echo "$(GREEN)Development tools installed!$(NC)"
 
 
 # Build docker image

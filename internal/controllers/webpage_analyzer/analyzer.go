@@ -43,7 +43,11 @@ func (wpac *webPageAnalyzerCtrler) Analyze(w http.ResponseWriter, r *http.Reques
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(result)
+	if err = json.NewEncoder(w).Encode(result); err != nil {
+		log.Println("[ERROR] Error encoding JSON response: ", err.Error())
+		http.Error(w, "Internal server error: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
 
 func validateURL(urlStr string) error {

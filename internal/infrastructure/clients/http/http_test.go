@@ -79,7 +79,9 @@ func Test_HttpClient_Get(t *testing.T) {
 					t.Errorf("expected GET request, got %s", r.Method)
 				}
 				w.WriteHeader(tt.statusCode)
-				w.Write([]byte(tt.responseBody))
+				if _, writeErr := w.Write([]byte(tt.responseBody)); writeErr != nil {
+					t.Errorf("failed to write response in httptest server: %v", writeErr)
+				}
 			}))
 			defer server.Close()
 
